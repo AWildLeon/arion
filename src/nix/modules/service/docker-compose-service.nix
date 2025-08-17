@@ -15,8 +15,18 @@ let
     serviceRef
     ;
 
-  cap_add = lib.attrNames (lib.filterAttrs (name: value: value == true) config.service.capabilities);
-  cap_drop = lib.attrNames (lib.filterAttrs (name: value: value == false) config.service.capabilities);
+  # support two input shapes for service.capabilities:
+  # - an attribute set mapping capability -> (null | true | false)
+  # - a list of capability names to add
+  cap_add = if builtins.isList config.service.capabilities then
+    config.service.capabilities
+  else
+    lib.attrNames (lib.filterAttrs (name: value: value == true) config.service.capabilities);
+
+  cap_drop = if builtins.isList config.service.capabilities then
+    []
+  else
+    lib.attrNames (lib.filterAttrs (name: value: value == false) config.service.capabilities);
 
   serviceSecretType = types.submodule {
     options = {
@@ -431,9 +441,9 @@ in
       description = serviceRef "sysctls";
     };
     service.capabilities = mkOption {
-      type = attrsOf (nullOr bool);
+      type = either (listOf str) (attrsOf (nullOr bool));
       default = {};
-      example = { ALL = true; SYS_ADMIN = false; NET_ADMIN = false; };
+  example = { ALL = true; SYS_ADMIN = false; NET_ADMIN = false; };
       description = ''
         Enable/disable linux capabilities, or pick Docker's default.
 
