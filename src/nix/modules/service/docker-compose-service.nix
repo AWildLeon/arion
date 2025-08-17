@@ -4,7 +4,7 @@
    the user-facing options service.image, service.volumes, etc.
 
  */
-{ pkgs, lib, config, options, ... }:
+{ lib, config, options, ... }:
 
 let
   inherit (lib) mkOption types;
