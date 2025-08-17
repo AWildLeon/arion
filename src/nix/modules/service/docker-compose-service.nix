@@ -103,6 +103,13 @@ in
         ${serviceRef "tty"}
       '';
     };
+    service.stdin_open = mkOption {
+      type = nullOr bool;
+      default = null;
+      description = ''
+        ${serviceRef "stdin_open"}
+      '';
+    };
     service.environment = mkOption {
       type = attrsOf (either str int);
       default = {};
@@ -511,6 +518,8 @@ in
     inherit (config.service) stop_grace_period;
   } // lib.optionalAttrs (config.service.tmpfs != []) {
     inherit (config.service) tmpfs;
+  } // lib.optionalAttrs (config.service.stdin_open != null) {
+    inherit (config.service) stdin_open;
   } // lib.optionalAttrs (config.service.tty != null) {
     inherit (config.service) tty;
   } // lib.optionalAttrs (config.service.working_dir != null) {
