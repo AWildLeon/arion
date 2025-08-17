@@ -266,7 +266,7 @@ in
       '';
     };
     service.entrypoint = mkOption {
-      type = nullOr str;
+      type = nullOr either str (listOf str);
       default = null;
       description = serviceRef "entrypoint";
     };
