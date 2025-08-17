@@ -52,6 +52,28 @@ in
       default = null;
       description = serviceRef "read_only";
     };
+
+    service.pid = mkOption {
+      type = nullOr str;
+      default = null;
+      description = ''
+        ${serviceRef "pid"}
+
+        If set to `host`, the service will share the host's PID namespace.
+        This is useful for debugging, but may have security implications.
+      '';
+    };
+
+    pids_limit = mkOption {
+      type = nullOr int;
+      default = null;
+      description = ''
+        ${serviceRef "pids_limit"}
+
+        The maximum number of processes that can be run in the service.
+        This is useful for limiting resource usage.
+      '';
+    };
     
 
     service.volumes = mkOption {
@@ -528,5 +550,9 @@ in
     inherit (config.service) user;
   } // lib.optionalAttrs (config.service.blkio_config != null) {
     blkio_config = config.service.blkio_config._out;
+  } // lib.optionalAttrs (config.service.pid != null) {
+    pid = config.service.pid;
+  } // lib.optionalAttrs (config.service.pids_limit != null) {
+    pids_limit = config.service.pids_limit;
   };
 }
