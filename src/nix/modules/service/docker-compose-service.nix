@@ -15,15 +15,21 @@ let
     serviceRef
     ;
 
-  # support two input shapes for service.capabilities:
-  # - an attribute set mapping capability -> (null | true | false)
-  # - a list of capability names to add
-  cap_add = if builtins.isList config.service.capabilities then
+  # support two input shapes for service.capabilities and also the
+  # legacy service.cap_add / service.cap_drop options that some
+  # user configs set directly.
+  # Precedence: explicit service.cap_add / service.cap_drop (lists) >
+  # service.capabilities (either list or attrset).
+  cap_add = if config.service.cap_add != [] then
+    config.service.cap_add
+  else if builtins.isList config.service.capabilities then
     config.service.capabilities
   else
     lib.attrNames (lib.filterAttrs (name: value: value == true) config.service.capabilities);
 
-  cap_drop = if builtins.isList config.service.capabilities then
+  cap_drop = if config.service.cap_drop != [] then
+    config.service.cap_drop
+  else if builtins.isList config.service.capabilities then
     []
   else
     lib.attrNames (lib.filterAttrs (name: value: value == false) config.service.capabilities);
@@ -458,6 +464,20 @@ in
 
         ${serviceRef "cap_add"}
         ${serviceRef "cap_drop"}
+      '';
+    };
+    service.cap_add = mkOption {
+      type = listOf str;
+      default = [];
+      description = ''
+        Backwards-compatible explicit list of capability names to add.
+      '';
+    };
+    service.cap_drop = mkOption {
+      type = listOf str;
+      default = [];
+      description = ''
+        Backwards-compatible explicit list of capability names to drop.
       '';
     };
     service.blkio_config = mkOption {
