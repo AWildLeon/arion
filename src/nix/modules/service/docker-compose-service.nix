@@ -45,7 +45,7 @@ let
         default = null;
         example = "0444";
         description = ''
-          The default value of is usually 0444. This option may not be supported
+          The default value is usually 0444. This option may not be supported
           when not deploying to a Swarm.
           ${serviceRef "secrets"}
         '';
@@ -168,7 +168,7 @@ in
     };
     service.secrets = mkOption {
       type = nullOr (either (listOf str) (attrsOf serviceSecretType));
-      default = [];
+      default = null;
       description = ''
         Run-time secrets exposed to the service.
       '';
@@ -585,21 +585,27 @@ in
     inherit (config.service) external_links;
   } // lib.optionalAttrs (config.service.extra_hosts != []) {
     inherit (config.service) extra_hosts;
-  } // lib.optionalAttrs (config.service.secrets != []) {
-    secrets = lib.mapAttrsToList (k: s: {
-      source = k;
-      target = k;
-    } // lib.optionalAttrs (s.source != null) {
-      inherit (s) source;
-    } // lib.optionalAttrs (s.target != null) {
-      inherit (s) target;
-    } // lib.optionalAttrs (s.uid != null) {
-      inherit (s) uid;
-    } // lib.optionalAttrs (s.gid != null) {
-      inherit (s) gid;
-    } // lib.optionalAttrs (s.mode != null) {
-      inherit (s) mode;
-    }) config.service.secrets;
+  } // lib.optionalAttrs (config.service.secrets != null && config.service.secrets != [] && config.service.secrets != {}) {
+    secrets =
+      if builtins.isAttrs config.service.secrets then
+        lib.mapAttrsToList (k: s: {
+          source = k;
+          target = k;
+        } // lib.optionalAttrs (s.source != null) {
+          inherit (s) source;
+        } // lib.optionalAttrs (s.target != null) {
+          inherit (s) target;
+        } // lib.optionalAttrs (s.uid != null) {
+          inherit (s) uid;
+        } // lib.optionalAttrs (s.gid != null) {
+          inherit (s) gid;
+        } // lib.optionalAttrs (s.mode != null) {
+          inherit (s) mode;
+        }) config.service.secrets
+      else if builtins.isList config.service.secrets then
+        map (k: { source = k; target = k; }) config.service.secrets
+      else
+        throw "service.secrets must be either an attribute set or a list of strings";
   } // lib.optionalAttrs (config.service.hostname != null) {
     inherit (config.service) hostname;
   } // lib.optionalAttrs (config.service.dns != []) {
