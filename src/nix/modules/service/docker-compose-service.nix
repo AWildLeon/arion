@@ -47,6 +47,13 @@ in
       readOnly = true;
     };
 
+    service.read_only = mkOption {
+      type = nullOr bool;
+      default = null;
+      description = serviceRef "read_only";
+    };
+    
+
     service.volumes = mkOption {
       type = listOf types.unspecified;
       default = [];
@@ -460,6 +467,8 @@ in
     inherit (config.service) command;
   } // lib.optionalAttrs (config.service.container_name != null) {
     inherit (config.service) container_name;
+  } // lib.optionalAttrs (config.service.read_only != null) {
+    inherit (config.service) read_only;
   } // lib.optionalAttrs (config.service.depends_on != []) {
     inherit (config.service) depends_on;
   } // lib.optionalAttrs (options.service.healthcheck.highestPrio < 1500) {
