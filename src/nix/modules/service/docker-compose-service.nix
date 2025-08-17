@@ -64,7 +64,7 @@ in
       '';
     };
 
-    pids_limit = mkOption {
+    service.pids_limit = mkOption {
       type = nullOr int;
       default = null;
       description = ''
@@ -266,7 +266,7 @@ in
       '';
     };
     service.entrypoint = mkOption {
-      type = nullOr either str (listOf str);
+      type = nullOr (either str (listOf str));
       default = null;
       description = serviceRef "entrypoint";
     };
